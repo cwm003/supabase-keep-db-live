@@ -1,226 +1,91 @@
-# 🔌 Supabase Keep Database Live
+# Supabase Keep-Alive
 
-Automated GitHub Actions workflow to keep your Supabase database active and prevent it from being paused due to inactivity.
+GitHub Actions workflow to prevent Supabase databases from pausing due to inactivity.
 
-## 📖 Overview
+## Why
 
-Supabase pauses databases after periods of inactivity (especially on free-tier projects) to conserve resources. This project uses GitHub Actions to periodically "ping" your Supabase databases, keeping them active and preventing automatic pausing.
+Supabase pauses free-tier databases after periods of inactivity. This workflow periodically pings your databases to keep them active.
 
-## ✨ Features
+## Features
 
-- 🤖 **Automated Pings**: Runs on a schedule (configurable)
-- 🎯 **Manual Triggers**: Can be triggered manually from GitHub UI
-- 🌐 **Multiple Databases**: Keep several Supabase databases alive with one workflow
-- 📊 **Detailed Logging**: See exactly what's happening with each ping
-- 🔒 **Secure**: Uses GitHub Secrets to store sensitive credentials
-- ⚡ **No Table Required**: Uses Supabase's auth endpoint - works globally without needing specific tables
-- 📈 **Summary Reports**: Get a clear summary of all pings with success/failure counts
+- Schedule automated pings via cron
+- Support for multiple databases in one workflow
+- No table configuration needed - uses REST API health check
+- Manual trigger support
+- Detailed per-database logging
 
-## 🚀 Setup Instructions
+## Setup
 
-### 1. Fork or Clone This Repository
+### 1. Add GitHub Secret
 
-```bash
-git clone https://github.com/yourusername/supabase-keep-db-live.git
-cd supabase-keep-db-live
-```
+Go to your repository **Settings** → **Secrets and variables** → **Actions** and create a new secret:
 
-### 2. Configure GitHub Secrets
+**Name:** `SUPABASE_CONFIGS`
 
-You need to add your Supabase database configurations as a GitHub repository secret:
+**Value:** JSON array of your database configs
 
-1. Go to your GitHub repository
-2. Navigate to **Settings** → **Secrets and variables** → **Actions**
-3. Click **New repository secret**
-4. Create a secret named: **`SUPABASE_CONFIGS`**
-5. Set the value as a **JSON array** of your database configurations
-
-> 📖 **Quick Setup Guide**: See [SETUP-EXAMPLE.md](SETUP-EXAMPLE.md) for ready-to-use templates and detailed instructions!
-
-#### Format for Single Database:
+**Single database:**
 ```json
-[{"name":"Production DB","url":"https://xxxxx.supabase.co","key":"eyJhbGc..."}]
+[{"name":"Production","url":"https://xxx.supabase.co","key":"your_anon_key"}]
 ```
 
-#### Format for Multiple Databases:
+**Multiple databases:**
 ```json
 [
-  {
-    "name": "Production DB",
-    "url": "https://xxxxx.supabase.co",
-    "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-  },
-  {
-    "name": "Staging DB",
-    "url": "https://yyyyy.supabase.co",
-    "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-  },
-  {
-    "name": "Development DB",
-    "url": "https://zzzzz.supabase.co",
-    "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-  }
+  {"name":"Production","url":"https://xxx.supabase.co","key":"anon_key_1"},
+  {"name":"Staging","url":"https://yyy.supabase.co","key":"anon_key_2"}
 ]
 ```
 
-#### Where to Find Your Credentials:
-- **URL**: Supabase Dashboard → Settings → API → Project URL
-- **Key**: Supabase Dashboard → Settings → API → Service Role Key (or anon key)
+Get your credentials from Supabase Dashboard → Settings → API:
+- `url` = Project URL
+- `key` = anon/public key (recommended) or service_role key
 
-> 💡 **Tip**: The `name` field is optional but recommended for easier identification in logs
-> 
-> ⚠️ **Important**: Use the **service role key** for full access, or the **anon key** if you prefer. The workflow uses the auth endpoint which doesn't require table-specific permissions.
+### 2. Adjust Schedule (Optional)
 
-### 3. Customize the Schedule (Optional)
-
-By default, the workflow runs **every Monday and Thursday at 9:00 AM UTC**. To change this:
+Default: Runs Monday and Thursday at 9:00 AM UTC
 
 Edit `.github/workflows/ping-supabase.yml`:
-
 ```yaml
-on:
-  schedule:
-    - cron: '0 9 * * 1,4'  # Modify this line
+schedule:
+  - cron: '0 9 * * 1,4'
 ```
 
-#### Common Cron Schedule Examples:
+Common schedules:
+- Daily: `0 9 * * *`
+- Every 12 hours: `0 */12 * * *`
+- Twice weekly: `0 9 * * 1,4`
 
-| Schedule | Cron Expression |
-|----------|----------------|
-| Every day at 9:00 AM UTC | `0 9 * * *` |
-| Every 12 hours | `0 */12 * * *` |
-| Every Monday at 8:00 AM UTC | `0 8 * * 1` |
-| Twice a week (Mon, Thu) | `0 9 * * 1,4` |
-| Every 6 hours | `0 */6 * * *` |
+### 3. Test
 
-> 💡 Use [crontab.guru](https://crontab.guru/) to help create custom cron schedules.
+Go to **Actions** tab → Select workflow → **Run workflow**
 
-### 4. Test the Workflow
+## Local Testing
 
-You can manually test the workflow:
-
-1. Go to your GitHub repository
-2. Navigate to **Actions** tab
-3. Select **Ping Supabase to Prevent Pausing**
-4. Click **Run workflow** → **Run workflow**
-
-Check the logs to ensure everything is working correctly!
-
-## 📁 Project Structure
-
-```
-supabase-keep-db-live/
-├── .github/
-│   └── workflows/
-│       └── ping-supabase.yml    # GitHub Actions workflow
-├── env.example                   # Environment variables template
-├── .gitignore                    # Git ignore rules
-├── package.json                  # NPM dependencies
-├── ping-supabase.js             # Local testing script
-├── README.md                     # Main documentation
-└── SETUP-EXAMPLE.md             # Quick setup guide with templates
-```
-
-## 🔧 Local Testing (Optional)
-
-If you want to test the ping functionality locally:
-
-1. Install dependencies:
 ```bash
 npm install
-```
-
-2. Create a `.env` file (copy from `env.example`):
-```bash
 cp env.example .env
-```
-
-3. Edit `.env` and update `SUPABASE_CONFIGS` with your database configurations:
-```bash
-SUPABASE_CONFIGS='[{"name":"My DB","url":"https://xxxxx.supabase.co","key":"your-key"}]'
-```
-
-4. Run the test script:
-```bash
+# Edit .env with your configs
 npm run ping
-# or directly:
-node ping-supabase.js
 ```
 
-You should see output like:
-```
-🚀 Starting to ping 1 database(s)...
-⏰ Timestamp: 2025-10-11T12:00:00.000Z
-════════════════════════════════════════════════════════════
+## How It Works
 
-📊 [1/1] Pinging: My DB
-📍 URL: https://xxxxx.supabase.co
-✅ Success! Response time: 245ms
+The workflow makes an HTTP request to `{url}/rest/v1/` to verify the database is reachable. It doesn't require any specific tables or data - just a successful connection to the Supabase REST API.
 
-════════════════════════════════════════════════════════════
-📈 Summary:
-   ✅ Successful: 1
-   ❌ Failed: 0
-   📊 Total: 1
+## FAQ
 
-🎉 All databases pinged successfully!
-```
+**Do I need to specify table names?**  
+No. The workflow pings the REST API endpoint directly.
 
-## 📊 Monitoring
+**Can I use multiple databases?**  
+Yes. Add multiple objects to the `SUPABASE_CONFIGS` array.
 
-To check if your workflow is running successfully:
+**Which API key should I use?**  
+The anon/public key is recommended. Service role key works too but isn't necessary.
 
-1. Go to the **Actions** tab in your GitHub repository
-2. Look for recent workflow runs
-3. Click on any run to see detailed logs
+**How often should I run this?**  
+Twice a week is sufficient. Adjust based on your Supabase tier's inactivity timeout.
 
-## 🤝 Contributing
-
-Feel free to open issues or submit pull requests if you have suggestions for improvements!
-
-## 📄 License
-
-MIT License - feel free to use this for your own projects!
-
-## 🙏 Credits
-
-Based on the article by [Jack Pritom Soren](https://github.com/jps27cse)
-
-## ❓ FAQ
-
-### Do I need to specify table names?
-
-**No!** This workflow uses Supabase's auth endpoint (`auth.getSession()`) which exists in every Supabase project. You don't need to configure any specific tables. It's truly global and works with any Supabase database.
-
-### Can I ping multiple databases at once?
-
-**Yes!** Just add multiple database configurations to your `SUPABASE_CONFIGS` secret. The workflow will ping each one sequentially and provide a summary report.
-
-### Why use service role key instead of anon key?
-
-Either works! Since we're using the auth endpoint (not querying tables), you can use either the service role key or the anon key. The service role key is more reliable as it has full access.
-
-### How often should I ping the database?
-
-Twice a week is usually sufficient. More frequent pings may not be necessary and could consume your GitHub Actions minutes (though the free tier is usually more than enough for this use case).
-
-### Will this work with other databases?
-
-This specific implementation is for Supabase. For other databases, you'd need to modify the connection and query logic.
-
-### Does this affect my Supabase usage limits?
-
-Each ping counts as an API request, but since we're only checking the auth endpoint a couple of times per week, the impact is minimal and well within free-tier limits.
-
-### What if one database fails but others succeed?
-
-The workflow will continue pinging all databases even if one fails. At the end, you'll see a summary showing which succeeded and which failed. The workflow will exit with an error if any database fails, so you'll be notified.
-
-## 📞 Support
-
-If you encounter any issues, please open an issue on GitHub!
-
----
-
-**Happy coding! 🚀**
-
+**Will this consume my API quota?**  
+Minimal impact - just a few requests per week.
