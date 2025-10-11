@@ -1,0 +1,26 @@
+{
+  "name": "supabase-keep-db-live",
+  "version": "1.0.0",
+  "description": "Automated GitHub Actions workflow to keep Supabase database active and prevent pausing",
+  "main": "index.js",
+  "scripts": {
+    "ping": "node ping-supabase.js",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "keywords": [
+    "supabase",
+    "github-actions",
+    "automation",
+    "database",
+    "keep-alive"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "dotenv": "^17.2.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
